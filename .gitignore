@@ -1,0 +1,5 @@
+/target
+
+# input and output files
+/input.json
+/movies.csv
