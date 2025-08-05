@@ -18,6 +18,10 @@ async fn main() -> Result<(), Error> {
 }
 
 pub(crate) async fn handler(event: LambdaEvent<S3Event>) -> Result<(), Error> {
+    if event.payload.records.is_empty() {
+        return Err(Error::from("No S3 event records found"));
+    }
+
     let s3_client = create_configured_s3_client().await;
 
     let mut file = get_file_from_event(event, &s3_client).await?;
@@ -41,8 +45,8 @@ pub(crate) async fn handler(event: LambdaEvent<S3Event>) -> Result<(), Error> {
         }
     }
 
-    let out_bucket = env::var("OUT_BUCKET").unwrap();
-    let out_prefix = env::var("OUT_PREFIX").unwrap();
+    let out_bucket = env::var("OUT_BUCKET").map_err(|_| Error::from("OUT_BUCKET not set"))?;
+    let out_prefix = env::var("OUT_PREFIX").map_err(|_| Error::from("OUT_PREFIX not set"))?;
     let timestamp = Utc::now().format("%Y%m%d-%H%M%S");
 
     put_file_to_s3(
