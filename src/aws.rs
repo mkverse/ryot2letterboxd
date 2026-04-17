@@ -6,7 +6,8 @@ use lambda_runtime::{tracing, Error, LambdaEvent};
 use std::io::Cursor;
 
 pub async fn create_configured_s3_client() -> Client {
-    let region = Region::new("eu-west-1".to_string());
+    let region_str = std::env::var("AWS_REGION").unwrap_or_else(|_| "eu-west-1".to_string());
+    let region = Region::new(region_str);
     let config = aws_config::defaults(BehaviorVersion::v2025_01_17())
         .region(region)
         .timeout_config(

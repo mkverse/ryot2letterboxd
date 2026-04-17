@@ -63,6 +63,7 @@ In the AWS Console (or via CLI/IaC), add an S3 trigger on the input bucket to in
 |----------|-------------|
 | `OUT_BUCKET` | S3 bucket name where the output CSV will be written |
 | `OUT_PREFIX` | Key prefix (folder path) for output files, e.g. `letterboxd` |
+| `AWS_REGION` | AWS region for the S3 client (default: `eu-west-1`) |
 
 ## Usage
 
@@ -100,7 +101,6 @@ cargo fmt
 
 - **Ratings are not mapped** -- Ryot and Letterboxd use different rating scales; this mapping is not yet implemented.
 - **Only movies are exported** -- TV shows and other media types are ignored.
-- **AWS region is hardcoded** to `eu-west-1` -- change `src/aws.rs` if you need a different region.
 
 ## Contributing
 
