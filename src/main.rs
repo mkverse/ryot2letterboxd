@@ -26,8 +26,13 @@ pub(crate) async fn handler(event: LambdaEvent<S3Event>) -> Result<(), Error> {
 
     let mut file = get_file_from_event(event, &s3_client).await?;
 
-    let ryot_export: RyotExport = serde_json::from_reader(&mut file).unwrap();
-    let movies = filter_to_movies(ryot_export.metadata.as_ref().unwrap());
+    let ryot_export: RyotExport = serde_json::from_reader(&mut file)
+        .map_err(|e| Error::from(format!("Failed to parse Ryot export JSON: {e}")))?;
+    let metadata = ryot_export
+        .metadata
+        .as_deref()
+        .unwrap_or_default();
+    let movies = filter_to_movies(metadata);
 
     let mut buffer = Vec::new();
     {
@@ -40,7 +45,7 @@ pub(crate) async fn handler(event: LambdaEvent<S3Event>) -> Result<(), Error> {
 
             for record in records {
                 wtr.serialize(&record)
-                    .expect(&format!("Failed serializing: {:?}", &record));
+                    .map_err(|e| Error::from(format!("Failed serializing record {record:?}: {e}")))?;
             }
         }
     }
@@ -55,7 +60,7 @@ pub(crate) async fn handler(event: LambdaEvent<S3Event>) -> Result<(), Error> {
         out_bucket.as_str(),
         format!("{out_prefix}/movies_{timestamp}.csv").as_str(),
     )
-    .await;
+    .await?;
 
     Ok(())
 }

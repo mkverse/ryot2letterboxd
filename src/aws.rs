@@ -27,14 +27,14 @@ pub async fn get_file_from_event(
         .s3
         .bucket
         .name
-        .as_ref()
-        .expect("Bucket name to exist");
+        .as_deref()
+        .ok_or_else(|| Error::from("S3 event is missing bucket name"))?;
     let key = event.payload.records[0]
         .s3
         .object
         .key
-        .as_ref()
-        .expect("Object key name to exist");
+        .as_deref()
+        .ok_or_else(|| Error::from("S3 event is missing object key"))?;
 
     tracing::info!("Loading file '{}' from bucket '{}'", key, bucket);
     let resp = client.get_object().bucket(bucket).key(key).send().await?;
@@ -42,7 +42,12 @@ pub async fn get_file_from_event(
     Ok(Cursor::new(body.to_vec()))
 }
 
-pub async fn put_file_to_s3(client: Client, buffer: Vec<u8>, bucket: &str, key: &str) {
+pub async fn put_file_to_s3(
+    client: Client,
+    buffer: Vec<u8>,
+    bucket: &str,
+    key: &str,
+) -> Result<(), Error> {
     tracing::info!("Saving file '{}' to bucket '{}'", key, bucket);
     client
         .put_object()
@@ -51,5 +56,6 @@ pub async fn put_file_to_s3(client: Client, buffer: Vec<u8>, bucket: &str, key: 
         .body(ByteStream::from(buffer))
         .send()
         .await
-        .expect("Failed to upload to S3");
+        .map_err(|e| Error::from(format!("Failed to upload '{key}' to S3 bucket '{bucket}': {e}")))?;
+    Ok(())
 }
