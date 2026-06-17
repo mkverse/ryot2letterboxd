@@ -2245,6 +2245,7 @@ dependencies = [
  "aws-sdk-s3",
  "aws-smithy-types",
  "aws_lambda_events",
+ "bytes",
  "chrono",
  "csv",
  "lambda_runtime",
@@ -2252,6 +2253,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "tokio",
+ "urlencoding",
 ]
 
 [[package]]

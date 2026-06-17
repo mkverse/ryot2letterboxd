@@ -37,11 +37,12 @@ mod option_date_format {
         opt.map(|s| {
             NaiveDate::parse_from_str(&s, FORMAT)
                 .map_err(serde::de::Error::custom)
-                .and_then(|date| {
-                    Ok(DateTime::<Utc>::from_naive_utc_and_offset(
-                        date.and_hms_opt(0, 0, 0).expect("REASON"),
+                .map(|date| {
+                    DateTime::<Utc>::from_naive_utc_and_offset(
+                        date.and_hms_opt(0, 0, 0)
+                            .expect("midnight (0, 0, 0) is always a valid NaiveTime"),
                         Utc,
-                    ))
+                    )
                 })
         })
         .transpose()
